@@ -7,19 +7,19 @@ import ReactDOM from 'react-dom';
 const CardList = (props) => {
 
     // the profiles will be received from the parent which is the App component.
-    // map the array of objects (testData) into Card elements. map every profile object into a card element,
+    // map the array of objects into Card elements. map every profile object into a card element,
     // the conversion is done like this: [<Card />, <Card />, <Card />, <Card />, etc]
 
-    // it is necessary to use a key for every card element
+    // it is necessary to use a key for every card element. in this case I used the html_url as a key, since it is unique
     return (
         <div>
-            {props.profiles.map(profile => <Card key={profile.id} {...profile}/>)}
+            {props.profiles.map(profile => <Card key={profile.html_url} {...profile}/>)}
         </div>
     )
 }
 
 
-// The card component
+// The Card component
 class Card extends Component {
 
     render() {
@@ -36,7 +36,8 @@ class Card extends Component {
                     alt='missing'
                 />
                 <div className='info' style={{display: 'inline-block', margin: '0 0 0 5%'}}>
-                    <div className='public repos' style={{fontSize: '100%'}}>public repositories: {profile.public_repos}</div>
+                    <div className='public repos' style={{fontSize: '100%'}}>public
+                        repositories: {profile.public_repos}</div>
                     <span>link: </span><a className='link' href={profile.html_url}
                                           style={{fontSize: '100%'}}>{profile.html_url}</a>
                     <div className='created-at' style={{fontSize: '100%'}}>created at: {profile.created_at}</div>
@@ -58,13 +59,19 @@ class Form extends Component {
     // the submit button event listener which uses axios library to fetch data from the API
     handleSubmit = async event => {
 
-        // we need to use preventDefault, otherwise the page will refresh after clicking the button when working with forms
+        // need to use preventDefault, otherwise the page will refresh after clicking the button when working with forms
         event.preventDefault();
 
-        // resp awaits for axios to retrieve data from github using the given url
-        const resp = await axios.get(`https://api.github.com/users/${this.state.userName}`);
+        try {
+            // resp awaits for axios to retrieve data from github using the given url
+            const resp = await axios.get(`https://api.github.com/users/${this.state.userName}`);
 
-        this.props.onSubmitAction(resp.data);
+            // pass the response data to the submitAction prop. the addNewProfile function will take it as parameter in
+            //  the App Component and will setState based on the previous State
+            this.props.onSubmitAction(resp.data);
+        } catch (error) {
+            alert(`${this.state.userName} does not exist, Please try a real user`);
+        }
     };
 
     render() {
@@ -87,9 +94,9 @@ class Form extends Component {
 
 class App extends Component {
 
-    // define the states as class attribute (no need for constructor anymore
+    // define the states as class attribute (no need for constructor anymore)
     state = {
-        profiles: testData,
+        profiles: [],
     };
 
     // access previous state, spread the existing profile using ...prevState.profile, and append the new profileData
@@ -106,8 +113,12 @@ class App extends Component {
         return (
             <div>
                 <div
-                    className='header'
-                    style={{textAlign: 'center', fontSize: '30px', fontFamily: 'Arial Helvetica sans-serif', fontWeight: 'bold',}}
+                    style={{
+                        textAlign: 'center',
+                        fontSize: '30px',
+                        fontFamily: 'Arial Helvetica sans-serif',
+                        fontWeight: 'bold',
+                    }}
                 >
                     {this.props.title}
                 </div>
@@ -118,17 +129,23 @@ class App extends Component {
     }
 }
 
+/*
 
-// the model used to fetch data from the github api
-const testData = [
+the model used to fetch data from the github api. it is a list composed of more literal object.
+  each literal object contains 5 properties. every time a new user is added, it will add a new object
+  to the list
+[
     {
         public_repos: '8',
         avatar_url: 'https://avatars1.githubusercontent.com/u/20042506?v=4',
         html_url: 'https://github.com/sebastianpacurar',
         created_at: '2016-06-20T10:41:18Z',
         type: 'User',
-    }
-];
+    },
+]
+
+
+ */
 
 
 ReactDOM.render(
